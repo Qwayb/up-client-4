@@ -2,16 +2,19 @@
   <div class="home">
     <h1>Каталог товаров</h1>
 
+    <!-- Блок для неавторизованных пользователей -->
     <div v-if="!isAuthenticated" class="auth-links">
       <router-link to="/register" class="auth-link">Регистрация</router-link>
       <router-link to="/login" class="auth-link">Вход</router-link>
     </div>
 
+    <!-- Блок для авторизованных пользователей -->
     <div v-else class="user-actions">
       <button @click="logout" class="logout-button">Выйти</button>
       <router-link to="/orders" class="orders-link">Мои заказы</router-link>
     </div>
 
+    <!-- Список товаров -->
     <div v-if="loading" class="loading">Загрузка товаров...</div>
     <div v-else class="product-list">
       <div v-for="product in products" :key="product.id" class="product-item">
@@ -31,37 +34,43 @@
 export default {
   data() {
     return {
-      products: [],
-      isAuthenticated: false,
-      loading: true,
+      products: [], // Список товаров
+      isAuthenticated: false, // Флаг авторизации
+      loading: true, // Флаг загрузки
     };
   },
   methods: {
+    // Метод для добавления товара в корзину
     addToCart(product) {
       console.log('Товар добавлен в корзину:', product);
+      this.$root.showNotification('Товар добавлен в корзину', 'success');
     },
 
+    // Метод для выхода из системы
     logout() {
       this.isAuthenticated = false;
-      console.log('Пользователь вышел из системы');
+      this.$root.showNotification('Вы вышли из системы', 'info');
     },
 
+    // Метод для формирования полного URL изображения
     getImageUrl(imagePath) {
       return `http://lifestealer86.ru/api-shop/${imagePath}`;
     },
   },
   async created() {
     try {
+      // Загрузка товаров из вашего API
       const response = await fetch('http://lifestealer86.ru/api-shop/products');
       if (!response.ok) {
         throw new Error('Ошибка при загрузке товаров');
       }
       const data = await response.json();
-      this.products = data.data;
+      this.products = data.data; // Сохраняем товары из ключа "data"
     } catch (error) {
       console.error('Ошибка при загрузке товаров:', error);
+      this.$root.showNotification('Ошибка при загрузке товаров', 'error');
     } finally {
-      this.loading = false;
+      this.loading = false; // Убираем индикатор загрузки
     }
   },
 };
