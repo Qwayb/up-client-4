@@ -3,7 +3,7 @@
     <h1>Каталог товаров</h1>
 
     <!-- Блок для неавторизованных пользователей -->
-    <div v-if="!isAuthenticated" class="auth-links">
+    <div v-if="!$root.isAuthenticated" class="auth-links">
       <router-link to="/register" class="auth-link">Регистрация</router-link>
       <router-link to="/login" class="auth-link">Вход</router-link>
     </div>
@@ -22,7 +22,7 @@
         <h2>{{ product.name }}</h2>
         <p>{{ product.description }}</p>
         <p class="price">{{ product.price }} руб.</p>
-        <button v-if="isAuthenticated" @click="addToCart(product)" class="add-to-cart-button">
+        <button v-if="$root.isAuthenticated" @click="addToCart(product)" class="add-to-cart-button">
           Добавить в корзину
         </button>
       </div>
@@ -35,7 +35,6 @@ export default {
   data() {
     return {
       products: [], // Список товаров
-      isAuthenticated: false, // Флаг авторизации
       loading: true, // Флаг загрузки
     };
   },
@@ -48,8 +47,10 @@ export default {
 
     // Метод для выхода из системы
     logout() {
-      this.isAuthenticated = false;
+      localStorage.removeItem('token'); // Удаляем токен
+      this.$root.isAuthenticated = false; // Обновляем состояние авторизации
       this.$root.showNotification('Вы вышли из системы', 'info');
+      this.$router.push('/'); // Перенаправляем на главную страницу
     },
 
     // Метод для формирования полного URL изображения
@@ -103,6 +104,7 @@ export default {
   padding: 8px 16px;
   border-radius: 4px;
   cursor: pointer;
+  margin-right: 10px;
 }
 
 .logout-button:hover {

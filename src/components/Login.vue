@@ -2,7 +2,6 @@
   <div class="login">
     <h1>Вход в систему</h1>
 
-    <!-- Форма входа -->
     <form @submit.prevent="handleSubmit" class="login-form">
       <div class="form-group">
         <label for="email">Email:</label>
@@ -31,8 +30,9 @@
       <button type="submit" class="submit-button">Войти</button>
     </form>
 
-    <!-- Ссылка на страницу регистрации -->
     <router-link to="/register" class="register-link">Нет аккаунта? Зарегистрируйтесь</router-link>
+
+    <div v-if="commonError" class="common-error">{{ commonError }}</div>
   </div>
 </template>
 
@@ -44,11 +44,11 @@ export default {
         email: '',
         password: '',
       },
-      errors: {}, // Ошибки валидации
+      errors: {},
+      commonError: '',
     };
   },
   methods: {
-    // Валидация формы
     validateForm() {
       this.errors = {};
 
@@ -65,13 +65,11 @@ export default {
       return Object.keys(this.errors).length === 0;
     },
 
-    // Проверка валидности email
     isValidEmail(email) {
       const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       return regex.test(email);
     },
 
-    // Обработка отправки формы
     async handleSubmit() {
       if (!this.validateForm()) return;
 
@@ -81,26 +79,43 @@ export default {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(this.form),
+          body: JSON.stringify({
+            email: this.form.email,
+            password: this.form.password,
+          }),
         });
 
         if (!response.ok) {
-          throw new Error('Ошибка при входе');
+          const data = await response.json();
+          if (response.status === 422 && data.errors) {
+            // Обработка ошибок валидации
+            for (const key in data.errors) {
+              this.errors[key] = data.errors[key].join(', ');
+            }
+          } else {
+            throw new Error(data.message || 'Ошибка при входе');
+          }
+        } else {
+          const data = await response.json();
+          console.log('Вход выполнен:', data);
+
+          // Сохранение токена
+          if (data.token) {
+            localStorage.setItem('token', data.token);
+          }
+
+          // Уведомление об успешном входе
+          this.$root.showNotification('Вход выполнен успешно!', 'success');
+
+          // Обновление состояния авторизации
+          this.$root.isAuthenticated = true;
+
+          // Перенаправление на главную страницу
+          this.$router.push('/');
         }
-
-        const data = await response.json();
-        console.log('Вход выполнен:', data);
-
-        // Уведомление об успешном входе
-        this.$root.showNotification('Вход выполнен успешно!', 'success');
-
-        // Перенаправление на главную страницу
-        this.$router.push('/');
       } catch (error) {
         console.error('Ошибка:', error);
-
-        // Уведомление об ошибке
-        this.$root.showNotification('Ошибка при входе. Проверьте данные.', 'error');
+        this.commonError = error.message || 'Ошибка при входе. Проверьте данные.';
       }
     },
   },
@@ -167,5 +182,11 @@ input {
 
 .register-link:hover {
   text-decoration: underline;
+}
+
+.common-error {
+  color: #ff4444;
+  text-align: center;
+  margin-top: 20px;
 }
 </style>

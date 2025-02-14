@@ -12,6 +12,11 @@ export default {
   components: {
     Notification,
   },
+  data() {
+    return {
+      isAuthenticated: !!localStorage.getItem('token'), // Состояние авторизации
+    };
+  },
   methods: {
     showNotification(message, type = 'info') {
       this.$refs.notification.show(message, type);

@@ -2,7 +2,6 @@
   <div class="register">
     <h1>Регистрация</h1>
 
-    <!-- Форма регистрации -->
     <form @submit.prevent="handleSubmit" class="register-form">
       <div class="form-group">
         <label for="fio">ФИО:</label>
@@ -43,10 +42,8 @@
       <button type="submit" class="submit-button">Зарегистрироваться</button>
     </form>
 
-    <!-- Ссылка на страницу входа -->
     <router-link to="/login" class="login-link">Уже есть аккаунт? Войдите</router-link>
 
-    <!-- Общая ошибка -->
     <div v-if="commonError" class="common-error">{{ commonError }}</div>
   </div>
 </template>
@@ -60,12 +57,11 @@ export default {
         email: '',
         password: '',
       },
-      errors: {}, // Ошибки для каждого поля
-      commonError: '', // Общая ошибка
+      errors: {},
+      commonError: '',
     };
   },
   methods: {
-    // Валидация формы
     validateForm() {
       this.errors = {};
 
@@ -88,13 +84,11 @@ export default {
       return Object.keys(this.errors).length === 0;
     },
 
-    // Проверка валидности email
     isValidEmail(email) {
       const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       return regex.test(email);
     },
 
-    // Обработка отправки формы
     async handleSubmit() {
       if (!this.validateForm()) return;
 
@@ -125,10 +119,8 @@ export default {
           const data = await response.json();
           console.log('Регистрация успешна:', data);
 
-          // Уведомление об успешной регистрации
           this.$root.showNotification('Регистрация прошла успешно!', 'success');
 
-          // Перенаправление на страницу входа
           this.$router.push('/login');
         }
       } catch (error) {

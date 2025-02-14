@@ -13,7 +13,7 @@ export default {
     return {
       visible: false,
       message: '',
-      type: 'info', // Тип уведомления: info, success, error
+      type: 'info',
     };
   },
   methods: {
@@ -22,7 +22,6 @@ export default {
       this.type = type;
       this.visible = true;
 
-      // Автоматическое закрытие через 3 секунды
       setTimeout(() => {
         this.close();
       }, 3000);
