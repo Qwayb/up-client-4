@@ -12,6 +12,7 @@
     <div v-else class="user-actions">
       <button @click="logout" class="logout-button">Выйти</button>
       <router-link to="/orders" class="orders-link">Мои заказы</router-link>
+      <router-link to="/cart" class="cart-link">Корзина</router-link>
     </div>
 
     <!-- Список товаров -->
@@ -41,7 +42,16 @@ export default {
   methods: {
     // Метод для добавления товара в корзину
     addToCart(product) {
-      console.log('Товар добавлен в корзину:', product);
+      const cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+      const existingItem = cartItems.find((item) => item.id === product.id);
+
+      if (existingItem) {
+        existingItem.quantity += 1;
+      } else {
+        cartItems.push({ ...product, quantity: 1 });
+      }
+
+      localStorage.setItem('cart', JSON.stringify(cartItems));
       this.$root.showNotification('Товар добавлен в корзину', 'success');
     },
 
@@ -87,13 +97,13 @@ export default {
   margin-bottom: 20px;
 }
 
-.auth-link, .orders-link {
+.auth-link, .orders-link, .cart-link {
   margin-right: 10px;
   text-decoration: none;
   color: #42b983;
 }
 
-.auth-link:hover, .orders-link:hover {
+.auth-link:hover, .orders-link:hover, .cart-link:hover {
   text-decoration: underline;
 }
 
@@ -104,7 +114,6 @@ export default {
   padding: 8px 16px;
   border-radius: 4px;
   cursor: pointer;
-  margin-right: 10px;
 }
 
 .logout-button:hover {

@@ -2,6 +2,7 @@
   <div class="login">
     <h1>Вход в систему</h1>
 
+    <!-- Форма входа -->
     <form @submit.prevent="handleSubmit" class="login-form">
       <div class="form-group">
         <label for="email">Email:</label>
@@ -30,8 +31,10 @@
       <button type="submit" class="submit-button">Войти</button>
     </form>
 
+    <!-- Ссылка на страницу регистрации -->
     <router-link to="/register" class="register-link">Нет аккаунта? Зарегистрируйтесь</router-link>
 
+    <!-- Общая ошибка -->
     <div v-if="commonError" class="common-error">{{ commonError }}</div>
   </div>
 </template>
@@ -44,11 +47,12 @@ export default {
         email: '',
         password: '',
       },
-      errors: {},
-      commonError: '',
+      errors: {}, // Ошибки для каждого поля
+      commonError: '', // Общая ошибка
     };
   },
   methods: {
+    // Валидация формы
     validateForm() {
       this.errors = {};
 
@@ -65,11 +69,13 @@ export default {
       return Object.keys(this.errors).length === 0;
     },
 
+    // Проверка валидности email
     isValidEmail(email) {
       const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       return regex.test(email);
     },
 
+    // Обработка отправки формы
     async handleSubmit() {
       if (!this.validateForm()) return;
 
@@ -104,11 +110,11 @@ export default {
             localStorage.setItem('token', data.token);
           }
 
-          // Уведомление об успешном входе
-          this.$root.showNotification('Вход выполнен успешно!', 'success');
-
           // Обновление состояния авторизации
           this.$root.isAuthenticated = true;
+
+          // Уведомление об успешном входе
+          this.$root.showNotification('Вход выполнен успешно!', 'success');
 
           // Перенаправление на главную страницу
           this.$router.push('/');
