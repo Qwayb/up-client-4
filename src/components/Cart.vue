@@ -73,9 +73,35 @@ export default {
 
     // Оформление заказа
     checkout() {
-      this.$root.showNotification('Заказ успешно оформлен!', 'success');
+      if (!this.$root.currentUser) {
+        this.$root.showNotification('Для оформления заказа войдите в систему', 'error');
+        return;
+      }
+
+      // Создаем заказ
+      const order = {
+        id: Date.now(), // Уникальный ID заказа
+        date: new Date().toLocaleString(), // Дата заказа
+        total: this.totalPrice, // Итоговая сумма
+        items: this.cartItems, // Товары в заказе
+      };
+
+      // Сохраняем заказ
+      const ordersKey = `orders_${this.$root.currentUser.email}`;
+      const orders = JSON.parse(localStorage.getItem(ordersKey)) || [];
+      orders.push(order);
+      localStorage.setItem(ordersKey, JSON.stringify(orders));
+
+      // Очищаем корзину
+      const cartKey = `cart_${this.$root.currentUser.email}`;
+      localStorage.removeItem(cartKey);
       this.cartItems = [];
-      this.saveCart();
+
+      // Уведомление об успешном оформлении заказа
+      this.$root.showNotification('Заказ успешно оформлен!', 'success');
+
+      // Перенаправление на страницу заказов
+      this.$router.push('/orders');
     },
 
     // Сохранение корзины в localStorage
