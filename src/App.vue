@@ -1,6 +1,16 @@
 <template>
   <div id="app">
+    <!-- Хедер -->
+    <header class="header">
+      <div class="logo" @click="goToHome">
+        Просто купить
+      </div>
+    </header>
+
+    <!-- Основной контент -->
     <router-view />
+
+    <!-- Уведомления -->
     <Notification ref="notification" />
   </div>
 </template>
@@ -52,10 +62,48 @@ export default {
       this.$router.push('/');
     },
 
+    // Переход на главную страницу
+    goToHome() {
+      this.$router.push('/');
+    },
   },
 };
 </script>
 
 <style>
 /* Глобальные стили */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.header {
+  background-color: #42b983;
+  padding: 16px;
+  color: white;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.logo {
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.logo:hover {
+  opacity: 0.8;
+}
+
+/* Основной контент */
+main {
+  flex: 1;
+  padding: 20px;
+}
 </style>
