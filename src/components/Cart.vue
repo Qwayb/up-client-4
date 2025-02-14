@@ -72,43 +72,17 @@ export default {
     },
 
     // Оформление заказа
-    async checkout() {
-      try {
-        const response = await fetch('http://lifestealer86.ru/api-shop/checkout', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            items: this.cartItems,
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error('Ошибка при оформлении заказа');
-        }
-
-        const data = await response.json();
-        console.log('Заказ оформлен:', data);
-
-        // Очистка корзины
-        this.cartItems = [];
-        localStorage.removeItem('cart'); // Очищаем корзину в localStorage
-
-        // Уведомление об успешном оформлении заказа
-        this.$root.showNotification('Заказ успешно оформлен!', 'success');
-
-        // Перенаправление на страницу заказов
-        this.$router.push('/orders');
-      } catch (error) {
-        console.error('Ошибка:', error);
-        this.$root.showNotification('Ошибка при оформлении заказа. Попробуйте еще раз.', 'error');
-      }
+    checkout() {
+      this.$root.showNotification('Заказ успешно оформлен!', 'success');
+      this.cartItems = [];
+      this.saveCart();
     },
 
     // Сохранение корзины в localStorage
     saveCart() {
-      localStorage.setItem('cart', JSON.stringify(this.cartItems));
+      if (this.$root.currentUser) {
+        localStorage.setItem(`cart_${this.$root.currentUser.email}`, JSON.stringify(this.cartItems));
+      }
     },
 
     // Метод для формирования полного URL изображения
@@ -118,9 +92,12 @@ export default {
   },
   created() {
     // Восстановление корзины из localStorage
-    const savedCart = localStorage.getItem('cart');
-    if (savedCart) {
-      this.cartItems = JSON.parse(savedCart);
+    if (this.$root.currentUser) {
+      const cartKey = `cart_${this.$root.currentUser.email}`;
+      const savedCart = localStorage.getItem(cartKey);
+      if (savedCart) {
+        this.cartItems = JSON.parse(savedCart);
+      }
     }
   },
 };

@@ -76,52 +76,17 @@ export default {
     },
 
     // Обработка отправки формы
-    async handleSubmit() {
+    handleSubmit() {
       if (!this.validateForm()) return;
 
-      try {
-        const response = await fetch('http://lifestealer86.ru/api-shop/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email: this.form.email,
-            password: this.form.password,
-          }),
-        });
-
-        if (!response.ok) {
-          const data = await response.json();
-          if (response.status === 422 && data.errors) {
-            // Обработка ошибок валидации
-            for (const key in data.errors) {
-              this.errors[key] = data.errors[key].join(', ');
-            }
-          } else {
-            throw new Error(data.message || 'Ошибка при входе');
-          }
-        } else {
-          const data = await response.json();
-          console.log('Вход выполнен:', data);
-
-          // Сохранение токена
-          if (data.token) {
-            localStorage.setItem('token', data.token);
-          }
-
-          // Обновление состояния авторизации
-          this.$root.isAuthenticated = true;
-
-          // Уведомление об успешном входе
-          this.$root.showNotification('Вход выполнен успешно!', 'success');
-
-          // Перенаправление на главную страницу
-          this.$router.push('/');
-        }
-      } catch (error) {
-        console.error('Ошибка:', error);
-        this.commonError = error.message || 'Ошибка при входе. Проверьте данные.';
+      const user = JSON.parse(localStorage.getItem(`user_${this.form.email}`));
+      if (user && user.password === this.form.password) {
+        // Вход выполнен успешно
+        this.$root.login(user);
+        this.$root.showNotification('Вход выполнен успешно!', 'success');
+        this.$router.push('/');
+      } else {
+        this.commonError = 'Неверный email или пароль';
       }
     },
   },

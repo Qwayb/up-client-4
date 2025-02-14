@@ -2,19 +2,8 @@
   <div class="register">
     <h1>Регистрация</h1>
 
+    <!-- Форма регистрации -->
     <form @submit.prevent="handleSubmit" class="register-form">
-      <div class="form-group">
-        <label for="fio">ФИО:</label>
-        <input
-            v-model="form.fio"
-            type="text"
-            id="fio"
-            placeholder="Введите ваше ФИО"
-            required
-        />
-        <span v-if="errors.fio" class="error">{{ errors.fio }}</span>
-      </div>
-
       <div class="form-group">
         <label for="email">Email:</label>
         <input
@@ -42,8 +31,10 @@
       <button type="submit" class="submit-button">Зарегистрироваться</button>
     </form>
 
+    <!-- Ссылка на страницу входа -->
     <router-link to="/login" class="login-link">Уже есть аккаунт? Войдите</router-link>
 
+    <!-- Общая ошибка -->
     <div v-if="commonError" class="common-error">{{ commonError }}</div>
   </div>
 </template>
@@ -53,21 +44,17 @@ export default {
   data() {
     return {
       form: {
-        fio: '',
         email: '',
         password: '',
       },
-      errors: {},
-      commonError: '',
+      errors: {}, // Ошибки для каждого поля
+      commonError: '', // Общая ошибка
     };
   },
   methods: {
+    // Валидация формы
     validateForm() {
       this.errors = {};
-
-      if (!this.form.fio) {
-        this.errors.fio = 'ФИО обязательно';
-      }
 
       if (!this.form.email) {
         this.errors.email = 'Email обязателен';
@@ -77,55 +64,29 @@ export default {
 
       if (!this.form.password) {
         this.errors.password = 'Пароль обязателен';
-      } else if (this.form.password.length < 6) {
-        this.errors.password = 'Пароль должен содержать минимум 6 символов';
       }
 
       return Object.keys(this.errors).length === 0;
     },
 
+    // Проверка валидности email
     isValidEmail(email) {
       const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       return regex.test(email);
     },
 
-    async handleSubmit() {
+    // Обработка отправки формы
+    handleSubmit() {
       if (!this.validateForm()) return;
 
-      try {
-        const response = await fetch('http://lifestealer86.ru/api-shop/signup', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            fio: this.form.fio,
-            email: this.form.email,
-            password: this.form.password,
-          }),
-        });
-
-        if (!response.ok) {
-          const data = await response.json();
-          if (response.status === 422 && data.errors) {
-            // Обработка ошибок валидации
-            for (const key in data.errors) {
-              this.errors[key] = data.errors[key].join(', ');
-            }
-          } else {
-            throw new Error(data.message || 'Ошибка при регистрации');
-          }
-        } else {
-          const data = await response.json();
-          console.log('Регистрация успешна:', data);
-
-          this.$root.showNotification('Регистрация прошла успешно!', 'success');
-
-          this.$router.push('/login');
-        }
-      } catch (error) {
-        console.error('Ошибка:', error);
-        this.commonError = error.message || 'Ошибка при регистрации. Попробуйте еще раз.';
+      const userKey = `user_${this.form.email}`;
+      if (localStorage.getItem(userKey)) {
+        this.commonError = 'Пользователь с таким email уже существует';
+      } else {
+        // Сохраняем пользователя
+        localStorage.setItem(userKey, JSON.stringify(this.form));
+        this.$root.showNotification('Регистрация прошла успешно!', 'success');
+        this.$router.push('/login');
       }
     },
   },

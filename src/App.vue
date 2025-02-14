@@ -15,6 +15,7 @@ export default {
   data() {
     return {
       isAuthenticated: false, // Состояние авторизации
+      currentUser: null, // Текущий пользователь
     };
   },
   created() {
@@ -27,30 +28,30 @@ export default {
     },
 
     // Проверка авторизации
-    async checkAuth() {
-      const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          const response = await fetch('http://lifestealer86.ru/api-shop/check-auth', {
-            method: 'GET',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-            },
-          });
-
-          if (response.ok) {
-            this.isAuthenticated = true; // Пользователь авторизован
-          } else {
-            localStorage.removeItem('token'); // Удаляем недействительный токен
-            this.isAuthenticated = false;
-          }
-        } catch (error) {
-          console.error('Ошибка при проверке токена:', error);
-          localStorage.removeItem('token'); // Удаляем недействительный токен
-          this.isAuthenticated = false;
-        }
+    checkAuth() {
+      const user = JSON.parse(localStorage.getItem('currentUser'));
+      if (user) {
+        this.isAuthenticated = true;
+        this.currentUser = user;
       }
     },
+
+    // Вход в систему
+    login(user) {
+      this.isAuthenticated = true;
+      this.currentUser = user;
+      localStorage.setItem('currentUser', JSON.stringify(user));
+    },
+
+    // Выход из системы
+    logout() {
+      this.isAuthenticated = false;
+      this.currentUser = null;
+      localStorage.removeItem('currentUser');
+      this.$root.showNotification('Вы вышли из системы', 'info');
+      this.$router.push('/');
+    },
+
   },
 };
 </script>

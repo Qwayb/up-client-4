@@ -42,25 +42,32 @@ export default {
   methods: {
     // Метод для добавления товара в корзину
     addToCart(product) {
-      const cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+      if (!this.$root.currentUser) {
+        this.$root.showNotification('Для добавления товара в корзину войдите в систему', 'error');
+        return;
+      }
+
+      // Получаем корзину текущего пользователя
+      const cartKey = `cart_${this.$root.currentUser.email}`;
+      const cartItems = JSON.parse(localStorage.getItem(cartKey)) || [];
+
+      // Проверяем, есть ли товар уже в корзине
       const existingItem = cartItems.find((item) => item.id === product.id);
 
       if (existingItem) {
-        existingItem.quantity += 1;
+        existingItem.quantity += 1; // Увеличиваем количество, если товар уже есть
       } else {
-        cartItems.push({ ...product, quantity: 1 });
+        cartItems.push({...product, quantity: 1}); // Добавляем новый товар
       }
 
-      localStorage.setItem('cart', JSON.stringify(cartItems));
+      // Сохраняем обновлённую корзину
+      localStorage.setItem(cartKey, JSON.stringify(cartItems));
       this.$root.showNotification('Товар добавлен в корзину', 'success');
     },
 
     // Метод для выхода из системы
     logout() {
-      localStorage.removeItem('token'); // Удаляем токен
-      this.$root.isAuthenticated = false; // Обновляем состояние авторизации
-      this.$root.showNotification('Вы вышли из системы', 'info');
-      this.$router.push('/'); // Перенаправляем на главную страницу
+      this.$root.logout();
     },
 
     // Метод для формирования полного URL изображения
