@@ -5,15 +5,15 @@
     <!-- Форма регистрации -->
     <form @submit.prevent="handleSubmit" class="register-form">
       <div class="form-group">
-        <label for="name">Имя:</label>
+        <label for="fio">ФИО:</label>
         <input
-            v-model="form.name"
+            v-model="form.fio"
             type="text"
-            id="name"
-            placeholder="Введите ваше имя"
+            id="fio"
+            placeholder="Введите ваше ФИО"
             required
         />
-        <span v-if="errors.name" class="error">{{ errors.name }}</span>
+        <span v-if="errors.fio" class="error">{{ errors.fio }}</span>
       </div>
 
       <div class="form-group">
@@ -40,23 +40,14 @@
         <span v-if="errors.password" class="error">{{ errors.password }}</span>
       </div>
 
-      <div class="form-group">
-        <label for="confirmPassword">Подтвердите пароль:</label>
-        <input
-            v-model="form.confirmPassword"
-            type="password"
-            id="confirmPassword"
-            placeholder="Подтвердите пароль"
-            required
-        />
-        <span v-if="errors.confirmPassword" class="error">{{ errors.confirmPassword }}</span>
-      </div>
-
       <button type="submit" class="submit-button">Зарегистрироваться</button>
     </form>
 
     <!-- Ссылка на страницу входа -->
     <router-link to="/login" class="login-link">Уже есть аккаунт? Войдите</router-link>
+
+    <!-- Общая ошибка -->
+    <div v-if="commonError" class="common-error">{{ commonError }}</div>
   </div>
 </template>
 
@@ -65,12 +56,12 @@ export default {
   data() {
     return {
       form: {
-        name: '',
+        fio: '',
         email: '',
         password: '',
-        confirmPassword: '',
       },
-      errors: {}, // Ошибки валидации
+      errors: {}, // Ошибки для каждого поля
+      commonError: '', // Общая ошибка
     };
   },
   methods: {
@@ -78,8 +69,8 @@ export default {
     validateForm() {
       this.errors = {};
 
-      if (!this.form.name) {
-        this.errors.name = 'Имя обязательно';
+      if (!this.form.fio) {
+        this.errors.fio = 'ФИО обязательно';
       }
 
       if (!this.form.email) {
@@ -92,10 +83,6 @@ export default {
         this.errors.password = 'Пароль обязателен';
       } else if (this.form.password.length < 6) {
         this.errors.password = 'Пароль должен содержать минимум 6 символов';
-      }
-
-      if (this.form.password !== this.form.confirmPassword) {
-        this.errors.confirmPassword = 'Пароли не совпадают';
       }
 
       return Object.keys(this.errors).length === 0;
@@ -117,26 +104,36 @@ export default {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(this.form),
+          body: JSON.stringify({
+            fio: this.form.fio,
+            email: this.form.email,
+            password: this.form.password,
+          }),
         });
 
         if (!response.ok) {
-          throw new Error('Ошибка при регистрации');
+          const data = await response.json();
+          if (response.status === 422 && data.errors) {
+            // Обработка ошибок валидации
+            for (const key in data.errors) {
+              this.errors[key] = data.errors[key].join(', ');
+            }
+          } else {
+            throw new Error(data.message || 'Ошибка при регистрации');
+          }
+        } else {
+          const data = await response.json();
+          console.log('Регистрация успешна:', data);
+
+          // Уведомление об успешной регистрации
+          this.$root.showNotification('Регистрация прошла успешно!', 'success');
+
+          // Перенаправление на страницу входа
+          this.$router.push('/login');
         }
-
-        const data = await response.json();
-        console.log('Регистрация успешна:', data);
-
-        // Уведомление об успешной регистрации
-        this.$root.showNotification('Регистрация прошла успешно!', 'success');
-
-        // Перенаправление на страницу входа
-        this.$router.push('/login');
       } catch (error) {
         console.error('Ошибка:', error);
-
-        // Уведомление об ошибке
-        this.$root.showNotification('Ошибка при регистрации. Попробуйте еще раз.', 'error');
+        this.commonError = error.message || 'Ошибка при регистрации. Попробуйте еще раз.';
       }
     },
   },
@@ -203,5 +200,11 @@ input {
 
 .login-link:hover {
   text-decoration: underline;
+}
+
+.common-error {
+  color: #ff4444;
+  text-align: center;
+  margin-top: 20px;
 }
 </style>
